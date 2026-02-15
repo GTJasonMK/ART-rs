@@ -1,0 +1,627 @@
+:root {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --border: #e2e2e2;
+  --border-light: #f0f0f0;
+  --text: #1a1a1a;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --ok: #16a34a;
+  --ok-bg: #f0fdf4;
+  --warn: #ca8a04;
+  --warn-bg: #fefce8;
+  --fail: #dc2626;
+  --fail-bg: #fef2f2;
+  --idle: #6b7280;
+  --idle-bg: #f3f4f6;
+  --radius: 8px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ========== Layout ========== */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 0 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.app-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.header-meta span {
+  white-space: nowrap;
+}
+
+/* ========== Tab Bar ========== */
+
+.tab-bar {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0;
+  padding: 0 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.tab-item {
+  position: relative;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: color 0.15s;
+}
+
+.tab-item:hover {
+  color: var(--text);
+}
+
+.tab-item.active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.tab-item.active::after {
+  content: "";
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: -1px;
+  height: 2px;
+  background: var(--primary);
+  border-radius: 2px 2px 0 0;
+}
+
+/* ========== Tab Content ========== */
+
+.tab-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.tab-pane {
+  display: none;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tab-pane.active {
+  display: flex;
+}
+
+/* ========== Status Bar ========== */
+
+.status-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36px;
+  padding: 0 20px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.status-bar[data-state="ok"] { color: var(--ok); }
+.status-bar[data-state="warn"] { color: var(--warn); }
+.status-bar[data-state="error"] { color: var(--fail); }
+.status-bar[data-state="busy"] { color: var(--primary); }
+
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--text-muted);
+}
+
+/* ========== Toolbar ========== */
+
+.toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--surface);
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+.toolbar label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* ========== Form Controls ========== */
+
+select, input[type="text"], input[type="password"], input[type="number"] {
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 10px;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+select:focus, input:focus {
+  border-color: var(--primary);
+}
+
+select {
+  min-width: 140px;
+  cursor: pointer;
+}
+
+input[type="number"] {
+  width: 72px;
+}
+
+input[type="text"], input[type="password"] {
+  min-width: 160px;
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  color: #fff;
+}
+
+button.danger {
+  color: var(--fail);
+  border-color: transparent;
+}
+
+button.danger:hover:not(:disabled) {
+  background: var(--fail-bg);
+  border-color: var(--fail);
+  color: var(--fail);
+}
+
+button.ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+button.ghost:hover:not(:disabled) {
+  background: var(--idle-bg);
+  border-color: transparent;
+  color: var(--text);
+}
+
+/* ========== Table ========== */
+
+.table-wrap {
+  flex: 1;
+  overflow: auto;
+  padding: 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 10px 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+tbody td {
+  padding: 10px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+}
+
+tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* ========== Status Dot ========== */
+
+.status-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status-dot::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.ok { color: var(--ok); }
+.status-dot.ok::before { background: var(--ok); }
+.status-dot.fail { color: var(--fail); }
+.status-dot.fail::before { background: var(--fail); }
+.status-dot.cache { color: var(--warn); }
+.status-dot.cache::before { background: var(--warn); }
+.status-dot.idle { color: var(--idle); }
+.status-dot.idle::before { background: var(--idle); }
+
+/* ========== Three-dot Menu ========== */
+
+.cell-actions {
+  position: relative;
+}
+
+.btn-more {
+  width: 32px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 18px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+
+.btn-more:hover {
+  background: var(--idle-bg);
+  color: var(--text);
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 100;
+  min-width: 160px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 4px 0;
+}
+
+.dropdown.open {
+  display: block;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  height: auto;
+  border-radius: 0;
+}
+
+.dropdown-item:hover {
+  background: var(--idle-bg);
+  border-color: transparent;
+  color: var(--text);
+}
+
+.dropdown-item.danger {
+  color: var(--fail);
+}
+
+.dropdown-item.danger:hover {
+  background: var(--fail-bg);
+  border-color: transparent;
+}
+
+.dropdown-sep {
+  height: 1px;
+  background: var(--border-light);
+  margin: 4px 0;
+}
+
+/* ========== Account Manager (Tab 2) ========== */
+
+.account-form {
+  flex-shrink: 0;
+  padding: 16px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.account-form h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.form-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-field label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.td-masked {
+  color: var(--text-muted);
+  font-family: monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+/* ========== Logs (Tab 3) ========== */
+
+.logs-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.logs-body {
+  flex: 1;
+  overflow: auto;
+  background: #1a1a2e;
+  padding: 8px 0;
+  font-family: "JetBrains Mono", "Cascadia Code", "Consolas", "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.logs-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #4a4a5a;
+  font-size: 13px;
+}
+
+.log-line {
+  padding: 3px 16px;
+  color: #a1a1aa;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.6;
+}
+
+.log-line:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.log-ts {
+  color: #525264;
+}
+
+.log-account-tag {
+  color: #93c5fd;
+  font-weight: 500;
+}
+
+.log-line.log-sep {
+  height: 1px;
+  padding: 0;
+  margin: 6px 16px;
+  background: #2a2a3e;
+}
+
+.log-line.log-ok .log-msg {
+  color: #4ade80;
+}
+
+.log-line.log-error .log-msg {
+  color: #f87171;
+}
+
+.log-line.log-balance .log-msg {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.log-line.log-title .log-msg {
+  color: #60a5fa;
+  font-weight: 600;
+}
+
+.logs-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.logs-count {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ========== Balance highlight ========== */
+
+.balance-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.total-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  height: 28px;
+  border-radius: var(--radius);
+  background: var(--ok-bg);
+  color: var(--ok);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+
+.total-badge:hover {
+  border-color: var(--ok);
+}
+
+/* ========== Empty state ========== */
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ========== Responsive ========== */
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 12px;
+  }
+
+  .tab-bar {
+    padding: 0 12px;
+  }
+
+  .toolbar {
+    padding: 10px 12px;
+  }
+
+  thead th, tbody td {
+    padding: 8px 10px;
+  }
+
+  .header-meta {
+    display: none;
+  }
+}

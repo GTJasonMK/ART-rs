@@ -1,0 +1,7 @@
+/target/
+/dist/
+/node_modules/
+/src-tauri/target/
+/.art-rs-start.lock
+/.art-rs-start.state
+/.tauri.dev.generated.json

@@ -90,3 +90,68 @@
 2026-02-15T09:29:30.754809Z  WARN tokio-runtime-worker art_rs::performance_monitor: [性能] 查询账号_BigBjg: 60.62秒 (失败: 每日首查网页登录签到失败: 网页流程失败: 登录失败，已重试2次: 余额提取失败)
 2026-02-15T09:29:30.754832Z  INFO tokio-runtime-worker art_rs::monitor: 检查完成: 总数=10, 成功=1, 失败=9, 耗时=60.62s
 2026-02-15T09:29:30.754852Z  WARN tokio-runtime-worker art_rs::performance_monitor: [性能] 批量查询账号: 60.62秒 (失败: 本轮失败账号数=9)
+2026-02-16T12:48:49.811822Z  INFO main art_rs: 日志文件: E:\Code\ART-rs\dist-release\ART-rs-0.1.0\anyrouter_monitor.log
+2026-02-16T12:48:49.811829Z  INFO main art_rs: ART-rs Tauri 启动
+2026-02-16T12:48:49.811830Z  INFO main art_rs: 配置目录: E:\Code\ART-rs\dist-release\ART-rs-0.1.0
+2026-02-16T12:48:49.811831Z  INFO main art_rs: 每日网页登录切日时间: 08:00
+2026-02-16T12:48:49.811906Z  INFO main art_rs: 成功加载 10 个账号
+2026-02-16T12:48:55.811378Z  INFO tokio-runtime-worker art_rs::monitor: 开始仅网页登录检查 10 个账号
+2026-02-16T12:48:55.811612Z  INFO tokio-runtime-worker art_rs::monitor: 开始仅网页登录账号: BigBjg
+2026-02-16T12:48:55.811624Z  INFO tokio-runtime-worker art_rs::monitor: 开始仅网页登录账号: ZWH
+2026-02-16T12:48:55.811769Z  INFO tokio-runtime-worker art_rs::monitor: 开始仅网页登录账号: XianYu12
+2026-02-16T12:48:55.811912Z  INFO tokio-runtime-worker art_rs::monitor: 开始仅网页登录账号: HJL
+2026-02-16T12:48:55.811929Z  INFO tokio-runtime-worker art_rs::monitor: 开始仅网页登录账号: GSH
+2026-02-16T12:48:55.811973Z  INFO tokio-runtime-worker art_rs::monitor: 开始仅网页登录账号: CAOGA
+2026-02-16T12:48:55.811979Z  INFO tokio-runtime-worker art_rs::monitor: 开始仅网页登录账号: Jason
+2026-02-16T12:48:55.812036Z  INFO tokio-runtime-worker art_rs::monitor: 开始仅网页登录账号: Yqp
+2026-02-16T12:48:55.812101Z  INFO tokio-runtime-worker art_rs::monitor: 开始仅网页登录账号: XuanYu
+2026-02-16T12:48:55.876134Z  INFO tokio-runtime-worker art_rs::driver_manager: 检测到Chrome版本(注册表): 145.0.7632.76
+2026-02-16T12:48:55.876649Z  INFO tokio-runtime-worker art_rs::driver_manager: 使用主版本缓存的ChromeDriver: C:\Users\28367\.cache\chromedriver\chromedriver_145.0.7632.76\chromedriver-win64\chromedriver.exe
+2026-02-16T12:48:55.876675Z  INFO tokio-runtime-worker art_rs::browser_pool: 初始化浏览器池: size=4
+2026-02-16T12:48:55.881074Z  INFO tokio-runtime-worker art_rs::driver_manager: 检测到Chrome版本(注册表): 145.0.7632.76
+2026-02-16T12:48:55.881547Z  INFO tokio-runtime-worker art_rs::driver_manager: 使用主版本缓存的ChromeDriver: C:\Users\28367\.cache\chromedriver\chromedriver_145.0.7632.76\chromedriver-win64\chromedriver.exe
+2026-02-16T12:48:55.881572Z  INFO tokio-runtime-worker art_rs::browser_pool: 初始化浏览器池: size=4
+2026-02-16T12:48:55.894332Z  INFO tokio-runtime-worker art_rs::driver_manager: 检测到Chrome版本(注册表): 145.0.7632.76
+2026-02-16T12:48:55.894779Z  INFO tokio-runtime-worker art_rs::driver_manager: 使用主版本缓存的ChromeDriver: C:\Users\28367\.cache\chromedriver\chromedriver_145.0.7632.76\chromedriver-win64\chromedriver.exe
+2026-02-16T12:48:55.894799Z  INFO tokio-runtime-worker art_rs::browser_pool: 初始化浏览器池: size=4
+2026-02-16T12:48:55.901094Z  INFO tokio-runtime-worker art_rs::driver_manager: 检测到Chrome版本(注册表): 145.0.7632.76
+2026-02-16T12:48:55.901405Z  INFO tokio-runtime-worker art_rs::driver_manager: 使用主版本缓存的ChromeDriver: C:\Users\28367\.cache\chromedriver\chromedriver_145.0.7632.76\chromedriver-win64\chromedriver.exe
+2026-02-16T12:48:55.901420Z  INFO tokio-runtime-worker art_rs::browser_pool: 初始化浏览器池: size=4
+2026-02-16T12:48:55.909872Z  INFO tokio-runtime-worker art_rs::driver_manager: 检测到Chrome版本(注册表): 145.0.7632.76
+2026-02-16T12:48:55.910218Z  INFO tokio-runtime-worker art_rs::driver_manager: 使用主版本缓存的ChromeDriver: C:\Users\28367\.cache\chromedriver\chromedriver_145.0.7632.76\chromedriver-win64\chromedriver.exe
+2026-02-16T12:48:55.910238Z  INFO tokio-runtime-worker art_rs::browser_pool: 初始化浏览器池: size=4
+2026-02-16T12:48:55.919942Z  INFO tokio-runtime-worker art_rs::driver_manager: 检测到Chrome版本(注册表): 145.0.7632.76
+2026-02-16T12:48:55.920271Z  INFO tokio-runtime-worker art_rs::driver_manager: 使用主版本缓存的ChromeDriver: C:\Users\28367\.cache\chromedriver\chromedriver_145.0.7632.76\chromedriver-win64\chromedriver.exe
+2026-02-16T12:48:55.920286Z  INFO tokio-runtime-worker art_rs::browser_pool: 初始化浏览器池: size=4
+2026-02-16T12:48:55.929462Z  INFO tokio-runtime-worker art_rs::driver_manager: 检测到Chrome版本(注册表): 145.0.7632.76
+2026-02-16T12:48:55.929986Z  INFO tokio-runtime-worker art_rs::driver_manager: 使用主版本缓存的ChromeDriver: C:\Users\28367\.cache\chromedriver\chromedriver_145.0.7632.76\chromedriver-win64\chromedriver.exe
+2026-02-16T12:48:55.930005Z  INFO tokio-runtime-worker art_rs::browser_pool: 初始化浏览器池: size=4
+2026-02-16T12:48:55.941928Z  INFO tokio-runtime-worker art_rs::driver_manager: 检测到Chrome版本(注册表): 145.0.7632.76
+2026-02-16T12:48:55.942240Z  INFO tokio-runtime-worker art_rs::driver_manager: 使用主版本缓存的ChromeDriver: C:\Users\28367\.cache\chromedriver\chromedriver_145.0.7632.76\chromedriver-win64\chromedriver.exe
+2026-02-16T12:48:55.942255Z  INFO tokio-runtime-worker art_rs::browser_pool: 初始化浏览器池: size=4
+2026-02-16T12:48:55.954913Z  INFO tokio-runtime-worker art_rs::driver_manager: 检测到Chrome版本(注册表): 145.0.7632.76
+2026-02-16T12:48:55.955355Z  INFO tokio-runtime-worker art_rs::driver_manager: 使用主版本缓存的ChromeDriver: C:\Users\28367\.cache\chromedriver\chromedriver_145.0.7632.76\chromedriver-win64\chromedriver.exe
+2026-02-16T12:48:55.955371Z  INFO tokio-runtime-worker art_rs::browser_pool: 初始化浏览器池: size=4
+2026-02-16T12:49:10.211652Z  INFO tokio-runtime-worker art_rs::monitor: 账号 HJL 仅网页登录成功，余额 $370.5
+2026-02-16T12:49:10.211720Z  WARN tokio-runtime-worker art_rs::performance_monitor: [性能] 网页登录账号_HJL: 14.40秒
+2026-02-16T12:49:10.211780Z  INFO tokio-runtime-worker art_rs::monitor: 开始仅网页登录账号: XianYu13
+2026-02-16T12:49:10.715044Z  INFO tokio-runtime-worker art_rs::monitor: 账号 GSH 仅网页登录成功，余额 $1077.5
+2026-02-16T12:49:10.715114Z  WARN tokio-runtime-worker art_rs::performance_monitor: [性能] 网页登录账号_GSH: 14.90秒
+2026-02-16T12:49:10.822569Z  INFO tokio-runtime-worker art_rs::monitor: 账号 Yqp 仅网页登录成功，余额 $188.9
+2026-02-16T12:49:10.822630Z  WARN tokio-runtime-worker art_rs::performance_monitor: [性能] 网页登录账号_Yqp: 15.01秒
+2026-02-16T12:49:11.074541Z  INFO tokio-runtime-worker art_rs::monitor: 账号 XuanYu 仅网页登录成功，余额 $483.3
+2026-02-16T12:49:11.074593Z  WARN tokio-runtime-worker art_rs::performance_monitor: [性能] 网页登录账号_XuanYu: 15.26秒
+2026-02-16T12:49:11.309235Z  INFO tokio-runtime-worker art_rs::monitor: 账号 Jason 仅网页登录成功，余额 $325.1
+2026-02-16T12:49:11.309274Z  WARN tokio-runtime-worker art_rs::performance_monitor: [性能] 网页登录账号_Jason: 15.50秒
+2026-02-16T12:49:11.957593Z  INFO tokio-runtime-worker art_rs::monitor: 账号 ZWH 仅网页登录成功，余额 $1002.7
+2026-02-16T12:49:11.957639Z  WARN tokio-runtime-worker art_rs::performance_monitor: [性能] 网页登录账号_ZWH: 16.15秒
+2026-02-16T12:49:11.959080Z  INFO tokio-runtime-worker art_rs::monitor: 账号 BigBjg 仅网页登录成功，余额 $825.5
+2026-02-16T12:49:11.959106Z  WARN tokio-runtime-worker art_rs::performance_monitor: [性能] 网页登录账号_BigBjg: 16.15秒
+2026-02-16T12:49:12.249539Z  INFO tokio-runtime-worker art_rs::monitor: 账号 CAOGA 仅网页登录成功，余额 $449.9
+2026-02-16T12:49:12.249578Z  WARN tokio-runtime-worker art_rs::performance_monitor: [性能] 网页登录账号_CAOGA: 16.44秒
+2026-02-16T12:49:12.263916Z  INFO tokio-runtime-worker art_rs::monitor: 账号 XianYu12 仅网页登录成功，余额 $977.3
+2026-02-16T12:49:12.264033Z  WARN tokio-runtime-worker art_rs::performance_monitor: [性能] 网页登录账号_XianYu12: 16.45秒
+2026-02-16T12:49:19.736367Z  INFO tokio-runtime-worker art_rs::monitor: 账号 XianYu13 仅网页登录成功，余额 $897.4
+2026-02-16T12:49:19.736400Z  WARN tokio-runtime-worker art_rs::performance_monitor: [性能] 网页登录账号_XianYu13: 23.92秒
+2026-02-16T12:49:19.736429Z  INFO tokio-runtime-worker art_rs::monitor: 检查完成: 总数=10, 成功=10, 失败=0, 耗时=23.93s
+2026-02-16T12:49:19.736537Z  WARN tokio-runtime-worker art_rs::performance_monitor: [性能] 批量网页登录账号: 23.93秒

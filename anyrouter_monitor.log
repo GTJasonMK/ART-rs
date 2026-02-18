@@ -2609,3 +2609,8 @@
 2026-02-15T18:10:42.586370Z  INFO tokio-runtime-worker art_rs::monitor: 账号 XuanYu API秒查成功: $458.3 (source=billing:subscription+usage)
 2026-02-15T18:10:42.632143Z  INFO tokio-runtime-worker art_rs::monitor: 账号 GSH API秒查成功: $1052.5 (source=billing:subscription+usage)
 2026-02-15T18:10:42.632671Z  INFO tokio-runtime-worker art_rs::monitor: 检查完成: 总数=10, 成功=10, 失败=0, 耗时=1.79s
+2026-02-16T12:51:40.834155Z  INFO main art_rs: 日志文件: E:\code\ART-rs\anyrouter_monitor.log
+2026-02-16T12:51:40.834170Z  INFO main art_rs: ART-rs Tauri 启动
+2026-02-16T12:51:40.834171Z  INFO main art_rs: 配置目录: E:\code\ART-rs
+2026-02-16T12:51:40.834173Z  INFO main art_rs: 每日网页登录切日时间: 08:00
+2026-02-16T12:51:40.834261Z  INFO main art_rs: 成功加载 10 个账号

@@ -9,6 +9,12 @@ const state = {
   queryInterval: 60,
   dailyRolloverHour: 8,
   fallbackToWeb: true,
+  autoSwitchEnabled: true,
+  autoSwitchThreshold: 1.0,
+  displaySearch: "",
+  displayStatus: "all",
+  displaySort: "default",
+  summaryCompact: false,
   selectedUsername: "",
   accounts: [],
   results: [],
@@ -69,7 +75,50 @@ app.innerHTML = `
             <label>\u79d2</label>
           </div>
           <span class="toolbar-divider"></span>
+          <div class="toolbar-group">
+            <button id="btnAutoSwitch" title="\u5f53\u5f53\u524d Claude Token \u4f59\u989d\u4f4e\u4e8e\u9608\u503c\u65f6\uff0c\u81ea\u52a8\u5207\u6362\u5230\u4f59\u989d\u6700\u9ad8\u7684 Key">\u4f4e\u4f59\u989d\u6362Key</button>
+            <label>\u9608\u503c</label>
+            <input id="switchThresholdInput" type="number" min="0" max="99999" step="0.1" value="1.0" />
+          </div>
+          <span class="toolbar-divider"></span>
           <span id="totalBadge" class="total-badge" style="display:none" title="\u70b9\u51fb\u590d\u5236">\u603b\u4f59\u989d: -</span>
+        </div>
+        <div class="toolbar toolbar-sub">
+          <div class="toolbar-group">
+            <label>\u663e\u793a</label>
+            <input id="resultsSearch" type="search" placeholder="\u641c\u7d22\u8d26\u53f7/\u8bf4\u660e" />
+            <button id="btnClearSearch" class="ghost" style="display:none" title="\u6e05\u7a7a\u641c\u7d22">\u6e05\u7a7a</button>
+            <label>\u72b6\u6001</label>
+            <select id="resultsStatus">
+              <option value="all">\u5168\u90e8</option>
+              <option value="ok">\u6210\u529f</option>
+              <option value="fail">\u5931\u8d25</option>
+              <option value="cache">\u7f13\u5b58</option>
+              <option value="idle">\u5f85\u673a</option>
+            </select>
+            <label>\u6392\u5e8f</label>
+            <select id="resultsSort">
+              <option value="default">\u9ed8\u8ba4</option>
+              <option value="balance_desc">\u4f59\u989d\u964d\u5e8f</option>
+              <option value="balance_asc">\u4f59\u989d\u5347\u5e8f</option>
+              <option value="username_asc">\u8d26\u53f7\u540d A-Z</option>
+            </select>
+          </div>
+          <div class="toolbar-group toolbar-right">
+            <span id="visibleBadge" class="visible-badge" style="display:none" title="\u70b9\u51fb\u590d\u5236"></span>
+            <div class="toolbar-menu">
+              <button id="btnTools" class="ghost" title="\u66f4\u591a\u64cd\u4f5c">\u66f4\u591a \u25be</button>
+              <div class="dropdown" id="toolsDropdown">
+                <button class="dropdown-item" data-action="reset_view">\u91cd\u7f6e\u89c6\u56fe</button>
+                <button class="dropdown-item" data-action="toggle_compact">\u7d27\u51d1\u6c47\u603b</button>
+                <div class="dropdown-sep"></div>
+                <button class="dropdown-item" data-action="copy_csv">\u590d\u5236 CSV</button>
+                <button class="dropdown-item" data-action="copy_json">\u590d\u5236 JSON</button>
+                <button class="dropdown-item" data-action="copy_fails">\u590d\u5236\u5931\u8d25\u8d26\u53f7</button>
+              </div>
+            </div>
+          </div>
+          <div id="summaryChips" class="summary-chips" style="display:none"></div>
         </div>
         <div class="table-wrap">
           <table>
@@ -77,7 +126,7 @@ app.innerHTML = `
               <tr>
                 <th>\u8d26\u53f7</th>
                 <th>\u72b6\u6001</th>
-                <th>\u4f59\u989d</th>
+                <th class="th-balance">\u4f59\u989d</th>
                 <th>\u6765\u6e90</th>
                 <th>\u8bf4\u660e</th>
                 <th style="width:48px"></th>
@@ -161,6 +210,16 @@ const refs = {
   metaFinished: el("metaFinished"),
   accountSelect: el("accountSelect"),
   intervalInput: el("intervalInput"),
+  btnAutoSwitch: el("btnAutoSwitch"),
+  switchThresholdInput: el("switchThresholdInput"),
+  resultsSearch: el("resultsSearch"),
+  btnClearSearch: el("btnClearSearch"),
+  resultsStatus: el("resultsStatus"),
+  resultsSort: el("resultsSort"),
+  visibleBadge: el("visibleBadge"),
+  btnTools: el("btnTools"),
+  toolsDropdown: el("toolsDropdown"),
+  summaryChips: el("summaryChips"),
   btnQuery: el("btnQuery"),
   btnWebLogin: el("btnWebLogin"),
   btnAuto: el("btnAuto"),
@@ -184,6 +243,7 @@ const refs = {
   autoLabel: el("autoLabel")
 };
 
+loadUiPrefs();
 bindEvents();
 boot().catch((error) => {
   pushLog(`\u521d\u59cb\u5316\u5931\u8d25: ${toErrorMessage(error)}`);
@@ -200,6 +260,37 @@ function bindEvents() {
     switchTab(btn.dataset.tab);
   });
 
+  // \u5feb\u6377\u952e\uff1a/ \u805a\u7126\u641c\u7d22\uff0cEsc \u6e05\u7a7a\u641c\u7d22/\u5173\u95ed\u83dc\u5355
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (state.activeTab !== "query") return;
+      const active = document.activeElement;
+      const tag = active ? active.tagName : "";
+      const isTyping = tag === "INPUT" || tag === "TEXTAREA" || (active && active.isContentEditable);
+      if (isTyping) return;
+      e.preventDefault();
+      refs.resultsSearch.focus();
+      refs.resultsSearch.select();
+      return;
+    }
+
+    if (e.key === "Escape") {
+      let handled = false;
+      if (state.openDropdown) {
+        closeDropdown();
+        handled = true;
+      }
+      if (document.activeElement === refs.resultsSearch && state.displaySearch) {
+        state.displaySearch = "";
+        refs.resultsSearch.value = "";
+        renderSearchClearButton();
+        renderResults();
+        handled = true;
+      }
+      if (handled) e.preventDefault();
+    }
+  });
+
   // \u5168\u5c40\u70b9\u51fb\u5173\u95ed\u4e0b\u62c9\u83dc\u5355
   document.addEventListener("click", (e) => {
     if (state.openDropdown && !e.target.closest(".cell-actions")) {
@@ -207,9 +298,102 @@ function bindEvents() {
     }
   });
 
+  // \u4f4e\u4f59\u989d\u81ea\u52a8\u6362Key
+  refs.btnAutoSwitch.addEventListener("click", () => {
+    state.autoSwitchEnabled = !state.autoSwitchEnabled;
+    saveUiPrefs();
+    renderAutoSwitchControls();
+    const msg = state.autoSwitchEnabled
+      ? `\u5df2\u5f00\u542f\u4f4e\u4f59\u989d\u6362Key\uff0c\u9608\u503c $${state.autoSwitchThreshold.toFixed(1)}`
+      : "\u5df2\u5173\u95ed\u4f4e\u4f59\u989d\u6362Key";
+    setStatus(msg, "ok");
+    pushLog(msg);
+  });
+  refs.switchThresholdInput.addEventListener("change", () => {
+    const raw = Number(refs.switchThresholdInput.value || "0");
+    const v = Number.isFinite(raw) ? Math.max(0, raw) : 0;
+    state.autoSwitchThreshold = v;
+    refs.switchThresholdInput.value = String(v);
+    saveUiPrefs();
+    renderAutoSwitchControls();
+  });
+
   // \u8d26\u53f7\u7b5b\u9009
   refs.accountSelect.addEventListener("change", () => {
     state.selectedUsername = refs.accountSelect.value;
+  });
+
+  // \u6570\u636e\u663e\u793a\u63a7\u5236
+  refs.resultsSearch.addEventListener("input", () => {
+    state.displaySearch = refs.resultsSearch.value || "";
+    renderSearchClearButton();
+    renderResults();
+  });
+  refs.btnClearSearch.addEventListener("click", () => {
+    if (!state.displaySearch) return;
+    state.displaySearch = "";
+    refs.resultsSearch.value = "";
+    renderSearchClearButton();
+    renderResults();
+    refs.resultsSearch.focus();
+  });
+  refs.resultsStatus.addEventListener("change", () => {
+    state.displayStatus = normalizeDisplayStatus(refs.resultsStatus.value);
+    saveUiPrefs();
+    renderViewControls();
+    renderResults();
+  });
+  refs.resultsSort.addEventListener("change", () => {
+    state.displaySort = normalizeDisplaySort(refs.resultsSort.value);
+    saveUiPrefs();
+    renderViewControls();
+    renderResults();
+  });
+  refs.btnTools.addEventListener("click", (e) => {
+    e.stopPropagation();
+    renderToolsMenu();
+    const menu = refs.toolsDropdown;
+    if (!menu) return;
+    if (state.openDropdown === menu) closeDropdown();
+    else openDropdown(menu, refs.btnTools);
+  });
+  refs.toolsDropdown.addEventListener("click", async (e) => {
+    const item = e.target.closest(".dropdown-item");
+    if (!item || item.disabled) return;
+    e.stopPropagation();
+    const action = item.dataset.action;
+    closeDropdown();
+    await handleToolsAction(action).catch((error) => {
+      setStatus(`\u64cd\u4f5c\u5931\u8d25: ${toErrorMessage(error)}`, "error");
+      pushLog(`\u64cd\u4f5c\u5931\u8d25: ${toErrorMessage(error)}`);
+    });
+  });
+
+  refs.visibleBadge.addEventListener("click", async () => {
+    const { text } = getVisibleStats(getDisplayedResults());
+    if (!text) return;
+    await navigator.clipboard.writeText(text);
+    setStatus(`\u5df2\u590d\u5236: ${text}`, "ok");
+    pushLog(`\u5df2\u590d\u5236: ${text}`);
+  });
+
+  refs.summaryChips.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-status]");
+    if (!btn) return;
+    const status = normalizeDisplayStatus(btn.dataset.status);
+    if (e.shiftKey) {
+      try {
+        await copyStatusUsernames(status);
+      } catch (error) {
+        setStatus(`\u590d\u5236\u5931\u8d25: ${toErrorMessage(error)}`, "error");
+      }
+      return;
+    }
+    if (status === normalizeDisplayStatus(state.displayStatus)) return;
+    state.displayStatus = status;
+    saveUiPrefs();
+    renderViewControls();
+    renderResults();
   });
 
   // \u95f4\u9694\u8c03\u6574
@@ -239,6 +423,10 @@ function bindEvents() {
 
   // \u7ed3\u679c\u8868\u683c\u4e09\u70b9\u83dc\u5355
   refs.resultsBody.addEventListener("click", onResultsAction);
+  const resultsWrap = refs.resultsBody.closest(".table-wrap");
+  if (resultsWrap) {
+    resultsWrap.addEventListener("scroll", () => closeDropdown());
+  }
 
   // \u8d26\u53f7\u7ba1\u7406
   refs.btnReload.addEventListener("click", () => reloadAccounts());
@@ -326,9 +514,11 @@ function switchTab(tabId) {
 function renderAll() {
   renderMeta();
   renderAccountSelect();
+  renderViewControls();
   renderResults();
   renderAccountsTable();
   renderTotalBadge();
+  renderAutoSwitchControls();
   scheduleStatusRender();
 }
 
@@ -343,6 +533,20 @@ function renderMeta() {
     `\u5207\u65e5: ${String(state.dailyRolloverHour).padStart(2, "0")}:00 | API\u5931\u8d25\u56de\u9000\u7f51\u9875: ${state.fallbackToWeb ? "\u542f\u7528" : "\u7981\u7528"}`;
 }
 
+function renderAutoSwitchControls() {
+  if (!refs.btnAutoSwitch || !refs.switchThresholdInput) return;
+  const enabled = Boolean(state.autoSwitchEnabled);
+  const threshold = Number.isFinite(state.autoSwitchThreshold)
+    ? Math.max(0, state.autoSwitchThreshold)
+    : 0;
+  state.autoSwitchThreshold = threshold;
+  refs.switchThresholdInput.value = String(threshold);
+  refs.btnAutoSwitch.classList.toggle("primary", enabled);
+  refs.btnAutoSwitch.textContent = enabled
+    ? "\u4f4e\u4f59\u989d\u6362Key: \u5f00"
+    : "\u4f4e\u4f59\u989d\u6362Key: \u5173";
+}
+
 function renderAccountSelect() {
   const opts = [`<option value="">\u5168\u90e8\u8d26\u53f7</option>`];
   state.accounts.forEach((item) => {
@@ -352,22 +556,141 @@ function renderAccountSelect() {
   refs.accountSelect.innerHTML = opts.join("");
 }
 
-function renderResults() {
-  if (state.results.length === 0) {
-    refs.resultsBody.innerHTML = `<tr><td colspan="6" class="empty-state">\u6682\u65e0\u6570\u636e\uff0c\u8bf7\u5148\u67e5\u8be2</td></tr>`;
+function renderViewControls() {
+  refs.resultsSearch.value = state.displaySearch || "";
+  renderSearchClearButton();
+  refs.resultsStatus.value = normalizeDisplayStatus(state.displayStatus);
+  refs.resultsSort.value = normalizeDisplaySort(state.displaySort);
+  renderToolsMenu();
+}
+
+function renderSearchClearButton() {
+  if (!refs.btnClearSearch) return;
+  const has = Boolean(String(state.displaySearch || "").trim());
+  refs.btnClearSearch.style.display = has ? "" : "none";
+}
+
+function renderToolsMenu() {
+  if (!refs.toolsDropdown) return;
+  const compactItem = refs.toolsDropdown.querySelector('[data-action="toggle_compact"]');
+  if (compactItem) {
+    compactItem.textContent = state.summaryCompact
+      ? "\u7d27\u51d1\u6c47\u603b: \u5f00"
+      : "\u7d27\u51d1\u6c47\u603b: \u5173";
+  }
+
+  const hasData = state.results.length > 0;
+  const copyCsv = refs.toolsDropdown.querySelector('[data-action="copy_csv"]');
+  const copyJson = refs.toolsDropdown.querySelector('[data-action="copy_json"]');
+  const copyFails = refs.toolsDropdown.querySelector('[data-action="copy_fails"]');
+  if (copyCsv) copyCsv.disabled = !hasData;
+  if (copyJson) copyJson.disabled = !hasData;
+  if (copyFails) copyFails.disabled = !hasData;
+}
+
+async function handleToolsAction(action) {
+  if (action === "reset_view") {
+    resetView();
     return;
   }
-  refs.resultsBody.innerHTML = state.results.map((item) => {
-    const dotClass = item.source === "cache" ? "cache"
-      : item.success ? "ok"
-      : item.source === "-" ? "idle"
-      : "fail";
-    const dotText = item.source === "cache" ? "\u7f13\u5b58"
-      : item.source === "-" ? "\u5f85\u673a"
-      : item.success ? "\u6210\u529f" : "\u5931\u8d25";
+  if (action === "toggle_compact") {
+    toggleSummaryCompact();
+    return;
+  }
+  if (action === "copy_csv") {
+    await copyDisplayedCsv();
+    return;
+  }
+  if (action === "copy_json") {
+    await copyDisplayedJson();
+    return;
+  }
+  if (action === "copy_fails") {
+    await copyDisplayedFails();
+  }
+}
+
+function resetView() {
+  state.displaySearch = "";
+  state.displayStatus = "all";
+  state.displaySort = "default";
+  state.summaryCompact = false;
+  saveUiPrefs();
+  renderViewControls();
+  renderResults();
+  setStatus("\u5df2\u91cd\u7f6e\u89c6\u56fe", "ok");
+}
+
+function toggleSummaryCompact() {
+  state.summaryCompact = !state.summaryCompact;
+  saveUiPrefs();
+  renderViewControls();
+  renderResults();
+  const msg = state.summaryCompact ? "\u5df2\u5f00\u542f\u7d27\u51d1\u6c47\u603b" : "\u5df2\u5173\u95ed\u7d27\u51d1\u6c47\u603b";
+  setStatus(msg, "ok");
+  pushLog(msg);
+}
+
+async function copyDisplayedCsv() {
+  const rows = getDisplayedResults();
+  if (state.results.length === 0) return;
+  const csv = formatResultsAsCsv(rows);
+  await navigator.clipboard.writeText(csv);
+  setStatus(`\u5df2\u590d\u5236 CSV\uff1a${rows.length} \u884c`, "ok");
+  pushLog(`\u5df2\u590d\u5236 CSV\uff1a${rows.length} \u884c`);
+}
+
+async function copyDisplayedJson() {
+  const rows = getDisplayedResults();
+  if (state.results.length === 0) return;
+  const json = JSON.stringify(rows, null, 2);
+  await navigator.clipboard.writeText(json);
+  setStatus(`\u5df2\u590d\u5236 JSON\uff1a${rows.length} \u6761`, "ok");
+  pushLog(`\u5df2\u590d\u5236 JSON\uff1a${rows.length} \u6761`);
+}
+
+async function copyDisplayedFails() {
+  if (state.results.length === 0) return;
+  const rows = getDisplayedResults();
+  const fails = rows
+    .filter((item) => getRowStatusKey(item) === "fail")
+    .map((item) => item.username)
+    .filter(Boolean);
+  const text = fails.join("\n");
+  await navigator.clipboard.writeText(text);
+  setStatus(`\u5df2\u590d\u5236\u5931\u8d25\u8d26\u53f7\uff1a${fails.length} \u4e2a`, fails.length ? "ok" : "warn");
+  pushLog(`\u5df2\u590d\u5236\u5931\u8d25\u8d26\u53f7\uff1a${fails.length} \u4e2a`);
+}
+
+function renderResults() {
+  closeDropdown();
+  if (state.results.length === 0) {
+    refs.resultsBody.innerHTML = `<tr><td colspan="6" class="empty-state">\u6682\u65e0\u6570\u636e\uff0c\u8bf7\u5148\u67e5\u8be2</td></tr>`;
+    refs.visibleBadge.style.display = "none";
+    refs.summaryChips.style.display = "none";
+    return;
+  }
+  const searchFiltered = getSearchFilteredResults();
+  renderSummaryChips(searchFiltered);
+  const displayed = getDisplayedResults(searchFiltered);
+  renderVisibleBadge(displayed);
+  if (displayed.length === 0) {
+    const hint = getDisplayHintText();
+    refs.resultsBody.innerHTML = `<tr><td colspan="6" class="empty-state">\u65e0\u5339\u914d\u6570\u636e${hint}</td></tr>`;
+    return;
+  }
+  refs.resultsBody.innerHTML = displayed.map((item) => {
+    const isCurrentClaude = state.claudeAccount && item.username === state.claudeAccount;
+    const claudeBadge = isCurrentClaude ? ' <span class="badge badge-claude">Claude</span>' : "";
+    const claudeActionLabel = isCurrentClaude ? "\u5df2\u662f Claude Token" : "\u8bbe\u4e3a Claude Token";
+    const claudeDisabledAttr = isCurrentClaude ? "disabled" : "";
+    const dotClass = getRowStatusKey(item);
+    const dotText = dotClass === "cache" ? "\u7f13\u5b58"
+      : dotClass === "idle" ? "\u5f85\u673a"
+      : dotClass === "ok" ? "\u6210\u529f" : "\u5931\u8d25";
     return `
-      <tr>
-        <td>${esc(item.username)}</td>
+      <tr class="${isCurrentClaude ? "row-current" : ""}">
+        <td><span class="account-name">${esc(item.username)}</span>${claudeBadge}</td>
         <td><span class="status-dot ${dotClass}">${dotText}</span></td>
         <td class="balance-value">${esc(item.balance_text || "-")}</td>
         <td>${esc(item.source || "-")}</td>
@@ -376,7 +699,7 @@ function renderResults() {
           <button class="btn-more" data-username="${escAttr(item.username)}" title="\u64cd\u4f5c">\u00b7\u00b7\u00b7</button>
           <div class="dropdown" data-menu="${escAttr(item.username)}">
             <button class="dropdown-item" data-action="copy_key" data-username="${escAttr(item.username)}">\u590d\u5236 API Key</button>
-            <button class="dropdown-item" data-action="set_claude" data-username="${escAttr(item.username)}">\u8bbe\u4e3a Claude Token</button>
+            <button class="dropdown-item" data-action="set_claude" data-username="${escAttr(item.username)}" ${claudeDisabledAttr}>${claudeActionLabel}</button>
             <button class="dropdown-item" data-action="set_openai" data-username="${escAttr(item.username)}">\u8bbe\u4e3a OpenAI Key</button>
             <div class="dropdown-sep"></div>
             <button class="dropdown-item danger" data-action="delete_account" data-username="${escAttr(item.username)}">\u5220\u9664\u8d26\u53f7</button>
@@ -385,6 +708,20 @@ function renderResults() {
       </tr>
     `;
   }).join("");
+}
+
+function renderVisibleBadge(displayedRows) {
+  if (!refs.visibleBadge) return;
+  const total = state.results.length;
+  if (total <= 0) {
+    refs.visibleBadge.style.display = "none";
+    return;
+  }
+  const { text, label, title } = getVisibleStats(displayedRows);
+  refs.visibleBadge.style.display = "";
+  refs.visibleBadge.textContent = label;
+  refs.visibleBadge.dataset.copyText = text;
+  refs.visibleBadge.title = title ? `${title}\n\u70b9\u51fb\u590d\u5236` : "\u70b9\u51fb\u590d\u5236";
 }
 
 function renderTotalBadge() {
@@ -421,14 +758,11 @@ function onResultsAction(e) {
   const moreBtn = e.target.closest(".btn-more");
   if (moreBtn) {
     e.stopPropagation();
-    const username = moreBtn.dataset.username;
     const menu = moreBtn.nextElementSibling;
     if (state.openDropdown === menu) {
       closeDropdown();
     } else {
-      closeDropdown();
-      menu.classList.add("open");
-      state.openDropdown = menu;
+      openDropdown(menu, moreBtn);
     }
     return;
   }
@@ -445,9 +779,48 @@ function onResultsAction(e) {
   }
 }
 
+function openDropdown(menu, anchor) {
+  if (!menu || !anchor) return;
+  closeDropdown();
+  menu.classList.add("open");
+  state.openDropdown = menu;
+  fitDropdown(menu, anchor);
+}
+
+function fitDropdown(menu, anchor) {
+  if (!menu || !anchor) return;
+
+  menu.classList.remove("dropdown-up");
+  menu.style.maxHeight = "";
+  menu.style.overflowY = "";
+
+  const wrap = menu.closest(".table-wrap");
+  const boundaryRect = wrap ? wrap.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
+  const anchorRect = anchor.getBoundingClientRect();
+  const menuRect = menu.getBoundingClientRect();
+
+  const gap = 10;
+  const spaceBelow = boundaryRect.bottom - anchorRect.bottom;
+  const spaceAbove = anchorRect.top - boundaryRect.top;
+  const shouldOpenUp = spaceBelow < menuRect.height + gap && spaceAbove > spaceBelow;
+
+  if (shouldOpenUp) {
+    menu.classList.add("dropdown-up");
+  }
+
+  const available = (shouldOpenUp ? spaceAbove : spaceBelow) - gap;
+  if (available > 140 && menuRect.height > available) {
+    menu.style.maxHeight = `${Math.floor(available)}px`;
+    menu.style.overflowY = "auto";
+  }
+}
+
 function closeDropdown() {
   if (state.openDropdown) {
     state.openDropdown.classList.remove("open");
+    state.openDropdown.classList.remove("dropdown-up");
+    state.openDropdown.style.maxHeight = "";
+    state.openDropdown.style.overflowY = "";
     state.openDropdown = null;
   }
 }
@@ -544,6 +917,9 @@ async function runQuery() {
     }
     pushLog("==================================================");
     setStatus(`\u67e5\u8be2\u5b8c\u6210\uff0c\u8017\u65f6 ${Number(r.elapsed_secs || 0).toFixed(2)}s`, "ok");
+    await maybeAutoSwitchClaudeKey().catch((error) => {
+      pushLog(`\u81ea\u52a8\u6362Key\u5931\u8d25: ${toErrorMessage(error)}`);
+    });
   } catch (error) {
     setStatus(`\u67e5\u8be2\u5931\u8d25: ${toErrorMessage(error)}`, "error");
     pushLog(`\u67e5\u8be2\u5931\u8d25: ${toErrorMessage(error)}`);
@@ -579,6 +955,9 @@ async function runWebLoginOnly() {
     pushLog(`\u5b8c\u6210: \u6210\u529f ${r.success_count} / \u5931\u8d25 ${r.fail_count}`);
     pushLog("==================================================");
     setStatus(`\u7f51\u9875\u767b\u5f55\u5b8c\u6210\uff0c\u8017\u65f6 ${Number(r.elapsed_secs || 0).toFixed(2)}s`, "ok");
+    await maybeAutoSwitchClaudeKey().catch((error) => {
+      pushLog(`\u81ea\u52a8\u6362Key\u5931\u8d25: ${toErrorMessage(error)}`);
+    });
   } catch (error) {
     setStatus(`\u7f51\u9875\u767b\u5f55\u5931\u8d25: ${toErrorMessage(error)}`, "error");
     pushLog(`\u7f51\u9875\u767b\u5f55\u5931\u8d25: ${toErrorMessage(error)}`);
@@ -586,6 +965,74 @@ async function runWebLoginOnly() {
     state.isRunning = false;
     scheduleStatusRender();
   }
+}
+
+async function maybeAutoSwitchClaudeKey() {
+  if (!state.autoSwitchEnabled) return;
+
+  const threshold = Number(state.autoSwitchThreshold);
+  if (!Number.isFinite(threshold) || threshold < 0) return;
+
+  await refreshClaudeAccount();
+  const currentAccount = state.claudeAccount;
+  if (!currentAccount) return;
+
+  const keyableAccounts = new Set(
+    state.accounts
+      .filter((item) => item && String(item.api_key || "").trim() !== "")
+      .map((item) => item.username)
+  );
+
+  const rows = await getMergedResultsForDecision();
+  const currentRow = rows.find((row) => row && row.username === currentAccount);
+  const currentBalance = currentRow && currentRow.success
+    ? parseBalance(currentRow.balance_text || "")
+    : null;
+  if (currentBalance === null) return;
+  if (currentBalance >= threshold) return;
+
+  let best = null;
+  rows.forEach((row) => {
+    if (!row || !row.success) return;
+    if (!keyableAccounts.has(row.username)) return;
+    const v = parseBalance(row.balance_text || "");
+    if (v === null) return;
+    if (!best || v > best.balance) {
+      best = { username: row.username, balance: v };
+    }
+  });
+
+  if (!best || best.username === currentAccount) return;
+  await invoke("save_claude_token_command", { username: best.username });
+  await refreshClaudeAccount();
+  renderMeta();
+  renderResults();
+
+  const msg = `\u4f59\u989d\u4f4e\u4e8e\u9608\u503c $${threshold.toFixed(1)}\uff0c\u5df2\u81ea\u52a8\u5207\u6362 Claude Token: ${currentAccount}($${currentBalance.toFixed(1)}) -> ${best.username}($${best.balance.toFixed(1)})`;
+  pushLog(msg);
+  setStatus(`\u5df2\u81ea\u52a8\u5207\u6362 Claude: ${best.username} ($${best.balance.toFixed(1)})`, "ok");
+}
+
+async function getMergedResultsForDecision() {
+  const hasAllRows = state.results.length >= state.accounts.length && state.accounts.length > 0;
+  if (hasAllRows) return state.results;
+
+  let cached = [];
+  try {
+    const r = await invoke("get_cached_results_command");
+    cached = Array.isArray(r) ? r : [];
+  } catch (_) {
+    cached = [];
+  }
+
+  const map = new Map();
+  cached.forEach((row) => {
+    if (row && row.username) map.set(row.username, row);
+  });
+  state.results.forEach((row) => {
+    if (row && row.username) map.set(row.username, row);
+  });
+  return Array.from(map.values());
 }
 
 // ========== Account Actions ==========
@@ -606,6 +1053,7 @@ async function setClaudeToken(username) {
     const msg = await invoke("save_claude_token_command", { username });
     await refreshClaudeAccount();
     renderMeta();
+    renderResults();
     setStatus(msg, "ok");
     pushLog(msg);
   } catch (error) {
@@ -817,6 +1265,247 @@ function parseBalance(text) {
   return Number.isFinite(v) ? v : null;
 }
 
+function getSearchFilteredResults() {
+  const rawRows = Array.isArray(state.results) ? state.results : [];
+  let rows = rawRows.slice();
+  const q = String(state.displaySearch || "").trim().toLowerCase();
+  if (!q) return rows;
+
+  rows = rows.filter((item) => {
+    const username = String(item.username || "").toLowerCase();
+    const message = String(item.message || "").toLowerCase();
+    const source = String(item.source || "").toLowerCase();
+    const balanceText = String(item.balance_text || "").toLowerCase();
+    return username.includes(q) || message.includes(q) || source.includes(q) || balanceText.includes(q);
+  });
+  return rows;
+}
+
+function renderSummaryChips(searchFilteredRows) {
+  if (!refs.summaryChips) return;
+  const totalRows = state.results.length;
+  if (totalRows <= 0) {
+    refs.summaryChips.style.display = "none";
+    refs.summaryChips.innerHTML = "";
+    return;
+  }
+
+  const counts = { all: 0, ok: 0, fail: 0, cache: 0, idle: 0 };
+  const sums = {
+    all: { total: 0, count: 0 },
+    ok: { total: 0, count: 0 },
+    fail: { total: 0, count: 0 },
+    cache: { total: 0, count: 0 },
+    idle: { total: 0, count: 0 }
+  };
+  const rows = Array.isArray(searchFilteredRows) ? searchFilteredRows : [];
+  counts.all = rows.length;
+  rows.forEach((item) => {
+    const k = getRowStatusKey(item);
+    if (k in counts) counts[k] += 1;
+
+    if (!item || !item.success) return;
+    const v = parseBalance(item.balance_text || "");
+    if (v === null) return;
+    sums.all.total += v;
+    sums.all.count += 1;
+    if (k in sums) {
+      sums[k].total += v;
+      sums[k].count += 1;
+    }
+  });
+
+  const active = normalizeDisplayStatus(state.displayStatus);
+  const compact = Boolean(state.summaryCompact);
+  const items = [
+    { key: "all", label: "\u5168\u90e8", count: counts.all },
+    { key: "ok", label: "\u6210\u529f", count: counts.ok },
+    { key: "fail", label: "\u5931\u8d25", count: counts.fail },
+    { key: "cache", label: "\u7f13\u5b58", count: counts.cache },
+    { key: "idle", label: "\u5f85\u673a", count: counts.idle }
+  ];
+
+  refs.summaryChips.style.display = "";
+  refs.summaryChips.classList.toggle("compact", compact);
+  refs.summaryChips.innerHTML = [
+    `<span class="summary-title">\u6c47\u603b</span>`,
+    ...items.map((it) => {
+      const isActive = active === it.key;
+      const sum = sums[it.key] || { total: 0, count: 0 };
+      const sumText = sum.count > 0 ? `$${sum.total.toFixed(2)}` : "-";
+      const sumTitle = sum.count > 0
+        ? `\u5c0f\u8ba1: $${sum.total.toFixed(2)} (${sum.count}\u4e2a)`
+        : "\u5c0f\u8ba1: -";
+      const avgText = sum.count > 0 ? `$${(sum.total / sum.count).toFixed(2)}` : "-";
+      const avgTitle = `\u5e73\u5747: ${avgText}`;
+      const title = [
+        `${it.label}\uff08\u70b9\u51fb\u7b5b\u9009\uff09`,
+        "\u6309\u4f4f Shift \u70b9\u51fb: \u590d\u5236\u8be5\u7c7b\u8d26\u53f7\u5217\u8868",
+        `\u8d26\u53f7\u6570: ${it.count}`,
+        sumTitle,
+        avgTitle
+      ].join("\n");
+      const sumCls = sum.count > 0 ? "chip-sum" : "chip-sum chip-sum-empty";
+      const avgCls = sum.count > 0 ? "chip-avg" : "chip-avg chip-avg-empty";
+      const avgLabel = sum.count > 0 ? `\u5747${avgText}` : "\u5747-";
+      const sumSpan = compact ? "" : ` <span class="${sumCls}">${sumText}</span>`;
+      const avgSpan = compact ? "" : ` <span class="${avgCls}">${avgLabel}</span>`;
+      return `
+        <button class="chip ${isActive ? "active" : ""}" data-status="${it.key}" title="${escAttr(title)}">
+          ${it.label}${sumSpan}${avgSpan} <span class="chip-count">${it.count}</span>
+        </button>
+      `;
+    })
+  ].join("");
+}
+
+async function copyStatusUsernames(status) {
+  const normalized = normalizeDisplayStatus(status);
+  const rows = getSearchFilteredResults();
+  const filtered = normalized === "all"
+    ? rows
+    : rows.filter((item) => getRowStatusKey(item) === normalized);
+  const names = filtered.map((item) => item && item.username).filter(Boolean);
+  const text = names.join("\n");
+  await navigator.clipboard.writeText(text);
+
+  const nameMap = {
+    all: "\u5168\u90e8",
+    ok: "\u6210\u529f",
+    fail: "\u5931\u8d25",
+    cache: "\u7f13\u5b58",
+    idle: "\u5f85\u673a"
+  };
+  const label = nameMap[normalized] || normalized;
+  setStatus(`\u5df2\u590d\u5236${label}\u8d26\u53f7: ${names.length} \u4e2a`, names.length ? "ok" : "warn");
+  pushLog(`\u5df2\u590d\u5236${label}\u8d26\u53f7: ${names.length} \u4e2a`);
+}
+
+function getRowStatusKey(item) {
+  if (!item) return "idle";
+  if (item.source === "cache") return "cache";
+  if (item.source === "-") return "idle";
+  return item.success ? "ok" : "fail";
+}
+
+function normalizeDisplayStatus(value) {
+  const v = String(value || "all");
+  const allowed = new Set(["all", "ok", "fail", "cache", "idle"]);
+  return allowed.has(v) ? v : "all";
+}
+
+function normalizeDisplaySort(value) {
+  const v = String(value || "default");
+  const allowed = new Set(["default", "balance_desc", "balance_asc", "username_asc"]);
+  return allowed.has(v) ? v : "default";
+}
+
+function getDisplayedResults(searchFilteredRows) {
+  let rows = Array.isArray(searchFilteredRows) ? searchFilteredRows.slice() : getSearchFilteredResults();
+  const status = normalizeDisplayStatus(state.displayStatus);
+  if (status !== "all") {
+    rows = rows.filter((item) => getRowStatusKey(item) === status);
+  }
+
+  const sort = normalizeDisplaySort(state.displaySort);
+  if (sort === "balance_desc" || sort === "balance_asc") {
+    const dir = sort === "balance_desc" ? -1 : 1;
+    rows.sort((a, b) => {
+      const va = a && a.success ? parseBalance(a.balance_text || "") : null;
+      const vb = b && b.success ? parseBalance(b.balance_text || "") : null;
+      const na = va === null ? (dir === -1 ? -Infinity : Infinity) : va;
+      const nb = vb === null ? (dir === -1 ? -Infinity : Infinity) : vb;
+      if (na !== nb) return (na - nb) * dir;
+      return String(a.username || "").localeCompare(String(b.username || ""), "zh");
+    });
+  } else if (sort === "username_asc") {
+    rows.sort((a, b) => String(a.username || "").localeCompare(String(b.username || ""), "zh"));
+  }
+
+  return rows;
+}
+
+function getVisibleStats(rows) {
+  const totalRows = state.results.length;
+  const shownRows = Array.isArray(rows) ? rows.length : 0;
+
+  let subtotal = 0;
+  let subtotalCount = 0;
+  const counts = { ok: 0, fail: 0, cache: 0, idle: 0 };
+  (Array.isArray(rows) ? rows : []).forEach((item) => {
+    const k = getRowStatusKey(item);
+    if (k in counts) counts[k] += 1;
+    if (!item || !item.success) return;
+    const v = parseBalance(item.balance_text || "");
+    if (v === null) return;
+    subtotal += v;
+    subtotalCount += 1;
+  });
+
+  const label = `\u663e\u793a: ${shownRows}/${totalRows} | \u5c0f\u8ba1: $${subtotal.toFixed(2)} (${subtotalCount}\u4e2a)`;
+  const title = [
+    `\u663e\u793a: ${shownRows}/${totalRows}`,
+    `\u6210\u529f: ${counts.ok} | \u7f13\u5b58: ${counts.cache} | \u5931\u8d25: ${counts.fail} | \u5f85\u673a: ${counts.idle}`,
+    `\u5c0f\u8ba1: $${subtotal.toFixed(2)} (${subtotalCount}\u4e2a)`
+  ].join("\n");
+  return { label, text: label, title };
+}
+
+function formatResultsAsCsv(rows) {
+  const header = ["username", "status", "balance_text", "source", "message"];
+  const lines = [header.join(",")];
+  (Array.isArray(rows) ? rows : []).forEach((item) => {
+    const statusKey = getRowStatusKey(item);
+    const statusText = statusKey === "cache" ? "\u7f13\u5b58"
+      : statusKey === "idle" ? "\u5f85\u673a"
+      : statusKey === "ok" ? "\u6210\u529f" : "\u5931\u8d25";
+    const row = [
+      csvEscape(item && item.username),
+      csvEscape(statusText),
+      csvEscape(item && item.balance_text),
+      csvEscape(item && item.source),
+      csvEscape(item && item.message)
+    ];
+    lines.push(row.join(","));
+  });
+  return lines.join("\n");
+}
+
+function csvEscape(value) {
+  const s = String(value || "");
+  if (/[",\n\r]/.test(s)) {
+    return `"${s.replaceAll("\"", "\"\"")}"`;
+  }
+  return s;
+}
+
+function getDisplayHintText() {
+  const parts = [];
+  const q = String(state.displaySearch || "").trim();
+  if (q) parts.push(`\u641c\u7d22: ${esc(q)}`);
+  const status = normalizeDisplayStatus(state.displayStatus);
+  if (status !== "all") {
+    const map = {
+      ok: "\u6210\u529f",
+      fail: "\u5931\u8d25",
+      cache: "\u7f13\u5b58",
+      idle: "\u5f85\u673a"
+    };
+    parts.push(`\u72b6\u6001: ${map[status] || status}`);
+  }
+  const sort = normalizeDisplaySort(state.displaySort);
+  if (sort !== "default") {
+    const map = {
+      balance_desc: "\u4f59\u989d\u964d\u5e8f",
+      balance_asc: "\u4f59\u989d\u5347\u5e8f",
+      username_asc: "\u8d26\u53f7\u540d A-Z"
+    };
+    parts.push(`\u6392\u5e8f: ${map[sort] || sort}`);
+  }
+  if (parts.length === 0) return "";
+  return `\uff08${parts.join(" | ")}\uff09`;
+}
+
 function maskText(text) {
   if (!text || text.length <= 4) return "****";
   return text.slice(0, 2) + "\u00b7".repeat(Math.min(text.length - 4, 8)) + text.slice(-2);
@@ -843,4 +1532,47 @@ function escAttr(value) {
 
 function el(id) {
   return document.getElementById(id);
+}
+
+function loadUiPrefs() {
+  try {
+    const enabled = localStorage.getItem("art_rs.auto_switch.enabled");
+    if (enabled !== null) {
+      state.autoSwitchEnabled = enabled === "1" || enabled === "true";
+    }
+    const raw = localStorage.getItem("art_rs.auto_switch.threshold");
+    if (raw !== null) {
+      const v = Number(raw);
+      if (Number.isFinite(v) && v >= 0) {
+        state.autoSwitchThreshold = v;
+      }
+    }
+
+    const viewStatus = localStorage.getItem("art_rs.view.status");
+    if (viewStatus !== null) {
+      state.displayStatus = normalizeDisplayStatus(viewStatus);
+    }
+    const viewSort = localStorage.getItem("art_rs.view.sort");
+    if (viewSort !== null) {
+      state.displaySort = normalizeDisplaySort(viewSort);
+    }
+    const compact = localStorage.getItem("art_rs.view.summary_compact");
+    if (compact !== null) {
+      state.summaryCompact = compact === "1" || compact === "true";
+    }
+  } catch (_) {
+    // ignore
+  }
+}
+
+function saveUiPrefs() {
+  try {
+    localStorage.setItem("art_rs.auto_switch.enabled", state.autoSwitchEnabled ? "1" : "0");
+    localStorage.setItem("art_rs.auto_switch.threshold", String(state.autoSwitchThreshold));
+    localStorage.setItem("art_rs.view.status", normalizeDisplayStatus(state.displayStatus));
+    localStorage.setItem("art_rs.view.sort", normalizeDisplaySort(state.displaySort));
+    localStorage.setItem("art_rs.view.summary_compact", state.summaryCompact ? "1" : "0");
+  } catch (_) {
+    // ignore
+  }
 }

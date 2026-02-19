@@ -74,6 +74,10 @@ npm run tauri:dev
   - `ART-rs/credentials.txt`
   - `ART-rs/balance_cache.json`
   - `ART-rs/daily_web_login_state.json`
+- 首次克隆/准备上传 GitHub：
+  - 仓库内提供示例文件：`config.example.json`、`credentials.example.txt`
+  - 本地运行时请自行复制生成：`config.example.json` → `config.json`（可选）、`credentials.example.txt` → `credentials.txt`（必需）
+  - `credentials.txt`、缓存与日志已加入 `.gitignore`，请勿提交真实账号/密钥与运行时数据
 
 ## 技术说明
 - 前端：Vite + 原生 JS + Tauri API

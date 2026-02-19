@@ -48,11 +48,43 @@ if "%APP_EXIT%"=="0" (
 )
 
 if "%APP_EXIT%"=="0" (
+    set "TAURI_BIN=%SCRIPT_DIR%\node_modules\.bin\tauri.cmd"
     if not exist "%SCRIPT_DIR%\node_modules" (
         echo [INFO] node_modules missing, running npm install...
-        npm install
+        call npm install --include=dev --no-audit --no-fund
+        if errorlevel 1 (
+            echo [WARN] npm install ^(with devDependencies^) failed, retrying npm install --production=false...
+            call npm install --production=false --no-audit --no-fund
+        )
+        if errorlevel 1 (
+            echo [WARN] npm install ^(with devDependencies^) failed, retrying plain npm install...
+            call npm install --no-audit --no-fund
+        )
         if errorlevel 1 (
             echo [ERROR] npm install failed.
+            set "APP_EXIT=1"
+        )
+    ) else if not exist "!TAURI_BIN!" (
+        echo [INFO] Tauri CLI missing, reinstalling dependencies ^(requires devDependencies^)...
+        call npm install --include=dev --no-audit --no-fund
+        if errorlevel 1 (
+            echo [WARN] npm install ^(with devDependencies^) failed, retrying npm install --production=false...
+            call npm install --production=false --no-audit --no-fund
+        )
+        if errorlevel 1 (
+            echo [WARN] npm install ^(with devDependencies^) failed, retrying plain npm install...
+            call npm install --no-audit --no-fund
+        )
+        if errorlevel 1 (
+            echo [ERROR] npm install failed.
+            set "APP_EXIT=1"
+        )
+    )
+
+    if "!APP_EXIT!"=="0" (
+        if not exist "!TAURI_BIN!" (
+            echo [ERROR] Tauri CLI still missing: !TAURI_BIN!
+            echo [INFO] Please run: npm install --include=dev ^(or npm install --production=false^)
             set "APP_EXIT=1"
         )
     )
@@ -104,11 +136,11 @@ if "%APP_EXIT%"=="0" (
 if "%APP_EXIT%"=="0" (
     if /I "%MODE%"=="dev" (
         echo [INFO] Start mode: tauri dev
-        npm run tauri:dev -- --config "%GEN_CONFIG%"
+        call npm run tauri:dev -- --config "%GEN_CONFIG%"
         set "APP_EXIT=%ERRORLEVEL%"
     ) else if /I "%MODE%"=="build" (
         echo [INFO] Start mode: tauri build
-        npm run tauri:build -- --config "%GEN_CONFIG%"
+        call npm run tauri:build -- --config "%GEN_CONFIG%"
         set "APP_EXIT=%ERRORLEVEL%"
     ) else (
         echo [ERROR] Unsupported mode: %MODE%

@@ -1,0 +1,37 @@
+{
+  "browser": {
+    "headless": true,
+    "timeout": 20,
+    "page_load_timeout": 30,
+    "implicitly_wait": 2,
+    "window_size": "1920,1080",
+    "user_agent": null,
+    "disable_images": true,
+    "disable_javascript": false
+  },
+  "performance": {
+    "max_workers": 9,
+    "query_interval": 60,
+    "retry_times": 2,
+    "retry_delay": 3,
+    "daily_rollover_hour": 8
+  },
+  "api": {
+    "base_url": "https://anyrouter.top",
+    "timeout": 8,
+    "fallback_to_web": true
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "anyrouter_monitor.log"
+  },
+  "web_check": {
+    "enabled": false,
+    "command": "",
+    "args": [],
+    "timeout_seconds": 90,
+    "chromedriver_path": "",
+    "pool_size": 4,
+    "max_pool_size": 9
+  }
+}

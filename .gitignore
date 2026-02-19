@@ -1,7 +1,62 @@
-/target/
-/dist/
-/node_modules/
-/src-tauri/target/
-/.art-rs-start.lock
-/.art-rs-start.state
-/.tauri.dev.generated.json
+# ====== Node / Vite ======
+node_modules/
+dist/
+.vite/
+dist-ssr/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ====== Rust / Cargo / Tauri ======
+target/
+src-tauri/target/
+src-tauri/gen/
+
+# ====== Release artifacts ======
+dist-release/
+*.exe
+*.msi
+*.dmg
+*.app
+*.AppImage
+*.deb
+*.rpm
+*.zip
+*.7z
+*.tar.gz
+
+# ====== Runtime local data (do not commit) ======
+credentials.txt
+config.json
+balance_cache.json
+daily_web_login_state.json
+
+*.log
+*.log.*
+
+*.tmp
+*.temp
+
+.art-rs-start.lock
+.art-rs-start.state
+.tauri.dev.generated.json
+.tauri.dev.generate.ps1
+
+# ====== Local tool configs ======
+.claude/
+.codex/
+.env
+.env.*
+
+# ====== Editor / OS ======
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*.bak
+*.orig

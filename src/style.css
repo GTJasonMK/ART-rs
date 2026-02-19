@@ -197,9 +197,143 @@ html, body {
   white-space: nowrap;
 }
 
+.toolbar.toolbar-sub {
+  border-top: 1px solid var(--border-light);
+  background: var(--surface);
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.toolbar-right {
+  margin-left: auto;
+}
+
+.toolbar-menu {
+  position: relative;
+}
+
+.toolbar-menu .dropdown {
+  right: 0;
+}
+
+.visible-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius);
+  background: var(--idle-bg);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: border-color 0.15s, color 0.15s;
+  user-select: none;
+}
+
+.visible-badge:hover {
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.summary-chips {
+  flex: 1 0 100%;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 6px;
+}
+
+.summary-chips.compact {
+  gap: 6px;
+}
+
+.summary-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-right: 4px;
+}
+
+button.chip {
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  border-color: var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.summary-chips.compact button.chip {
+  padding: 0 9px;
+}
+
+button.chip:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+button.chip.active {
+  background: #eff6ff;
+  border-color: rgba(37, 99, 235, 0.35);
+  color: var(--primary);
+}
+
+.chip-sum {
+  margin-left: 6px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.chip-sum-empty {
+  color: var(--text-muted);
+}
+
+button.chip.active .chip-sum {
+  color: var(--primary);
+}
+
+.chip-avg {
+  margin-left: 6px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.chip-avg-empty {
+  color: var(--text-muted);
+}
+
+button.chip.active .chip-avg {
+  color: var(--primary);
+}
+
+.chip-count {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--idle-bg);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+button.chip.active .chip-count {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--primary);
+}
+
 /* ========== Form Controls ========== */
 
-select, input[type="text"], input[type="password"], input[type="number"] {
+select, input[type="text"], input[type="search"], input[type="password"], input[type="number"] {
   height: 32px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -224,7 +358,7 @@ input[type="number"] {
   width: 72px;
 }
 
-input[type="text"], input[type="password"] {
+input[type="text"], input[type="search"], input[type="password"] {
   min-width: 160px;
 }
 
@@ -316,6 +450,10 @@ thead th {
   white-space: nowrap;
 }
 
+thead th.th-balance {
+  text-align: right;
+}
+
 tbody td {
   padding: 10px 16px;
   font-size: 13px;
@@ -325,6 +463,37 @@ tbody td {
 
 tbody tr:hover {
   background: #f8fafc;
+}
+
+.account-name {
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  border: 1px solid transparent;
+  vertical-align: middle;
+}
+
+.badge-claude {
+  background: #eff6ff;
+  color: var(--primary);
+  border-color: rgba(37, 99, 235, 0.25);
+}
+
+tbody tr.row-current {
+  background: #f5faff;
+}
+
+tbody tr.row-current:hover {
+  background: #eaf2ff;
 }
 
 /* ========== Status Dot ========== */
@@ -386,11 +555,19 @@ tbody tr:hover {
   top: 100%;
   z-index: 100;
   min-width: 160px;
+  margin-top: 6px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-md);
   padding: 4px 0;
+}
+
+.dropdown.dropdown-up {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 6px;
 }
 
 .dropdown.open {
@@ -569,6 +746,7 @@ tbody tr:hover {
 .balance-value {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .total-badge {
